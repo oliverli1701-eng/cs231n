@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>什么是 SVM？它与 Softmax 有什么区别？</title>
+  <style>
+    :root{--paper:#f3efe6;--surface:#fffdf8;--ink:#20242a;--muted:#687078;--line:#d8d0c2;--svm:#9a4f2c;--svm-soft:#faeee7;--softmax:#245f7a;--softmax-soft:#e9f3f8;--green:#3f7058;--green-soft:#eaf3ed;--warning:#8b3d3a;--warning-soft:#f8e9e7;--code:#252a30;--shadow:0 18px 52px rgba(58,48,34,.10)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:linear-gradient(rgba(86,70,47,.035) 1px,transparent 1px),var(--paper);background-size:100% 32px;font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",Georgia,serif;font-size:17px;line-height:1.84;-webkit-font-smoothing:antialiased}main{width:min(960px,calc(100% - 28px));margin:32px auto 54px;padding:clamp(27px,5vw,64px);background:var(--surface);border:1px solid rgba(118,101,76,.22);box-shadow:var(--shadow)}header{padding-bottom:30px;border-bottom:2px solid var(--ink)}.eyebrow{margin:0 0 9px;color:var(--svm);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.77rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}h1{margin:0;max-width:820px;font-size:clamp(2.15rem,5.4vw,3.75rem);line-height:1.16;letter-spacing:-.045em}.lead{margin:22px 0 0;max-width:820px;color:#3f474e;font-size:1.08rem}h2{margin:48px 0 14px;font-size:clamp(1.45rem,3vw,1.95rem);line-height:1.35;letter-spacing:-.025em}h3{margin:30px 0 10px;font-size:1.16rem;line-height:1.42}p{margin:12px 0}strong{font-weight:770}code{padding:.1em .32em;border-radius:3px;background:#ece8df;font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:.88em}.opening-question{margin-top:26px;padding:18px 20px;background:#f7f2e9;border-left:5px solid var(--ink);font-size:1.04rem}.chain{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:28px 0;padding:20px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:750;text-align:center}.chain .common{color:#3a454e}.chain .svm{color:var(--svm)}.chain .softmax{color:var(--softmax)}.chain .arrow{color:#9a8e7b;font-size:1.2rem}.formula{margin:20px 0;padding:18px 20px;overflow-x:auto;background:#f4f1eb;border-left:4px solid #4b5964;font-family:"Cambria Math","Times New Roman",serif;font-size:clamp(1.04rem,2.8vw,1.3rem);line-height:1.7;text-align:center;white-space:nowrap}.formula.svm{border-color:var(--svm);background:var(--svm-soft)}.formula.softmax{border-color:var(--softmax);background:var(--softmax-soft)}.formula .caption{display:block;margin-top:6px;color:var(--muted);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.75rem;white-space:normal}.shape-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:12px;margin:22px 0;text-align:center;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shape{padding:15px 10px;border:1px solid #c6d0d6;background:#eef3f5}.shape b{display:block;font-family:"Cambria Math","Times New Roman",serif;font-size:1.2rem}.shape span{display:block;margin-top:4px;color:#58636b;font-size:.79rem}.op{color:#857b6c;font-size:1.35rem;font-weight:900}.note,.warning,.aside{margin:22px 0;padding:17px 19px;border-left:4px solid}.note{background:var(--green-soft);border-color:var(--green)}.warning{background:var(--warning-soft);border-color:var(--warning)}.aside{background:#f1eee8;border-color:#8a8174;color:#41484d}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:19px;margin:23px 0}.panel{padding:20px;border:1px solid var(--line);background:white}.panel.svm{border-top:5px solid var(--svm);background:linear-gradient(to bottom,var(--svm-soft),white 50%)}.panel.softmax{border-top:5px solid var(--softmax);background:linear-gradient(to bottom,var(--softmax-soft),white 50%)}.panel h3{margin:0 0 9px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.panel.svm h3{color:var(--svm)}.panel.softmax h3{color:var(--softmax)}.example{margin:26px 0;padding:23px;background:#fffaf0;border:1px solid #dfd0b5}.example-title{margin:0 0 14px;color:#8e5c26;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.82rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 20px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}.score-cell{padding:12px 8px;background:white;border:1px solid var(--line)}.score-cell.true{border:2px solid #344d5d;background:#eef5f7}.score-cell .label{display:block;color:var(--muted);font-size:.78rem}.score-cell .value{display:block;margin-top:2px;font-family:"Cambria Math","Times New Roman",serif;font-size:1.36rem;font-weight:750}table{width:100%;border-collapse:collapse;margin:17px 0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.92rem}th,td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:#47525b;font-size:.79rem;letter-spacing:.025em}pre{margin:18px 0;padding:20px;overflow:auto;color:#f3f4f6;background:var(--code);border-radius:2px;font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:.87rem;line-height:1.65}pre .comment{color:#abb5bf}pre .result{color:#ffd98d}.steps{margin:18px 0;padding:0;list-style:none;counter-reset:item}.steps li{position:relative;padding:10px 0 10px 44px;border-bottom:1px dashed var(--line)}.steps li::before{counter-increment:item;content:counter(item);position:absolute;left:0;top:11px;width:27px;height:27px;border-radius:50%;color:white;background:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.78rem;font-weight:850;line-height:27px;text-align:center}.prob-bars{margin:19px 0;padding:18px;border:1px solid var(--line);background:white;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.bar-row{display:grid;grid-template-columns:80px 1fr 60px;gap:10px;align-items:center;margin:10px 0}.bar-track{height:13px;background:#e8e6e1;overflow:hidden}.bar-fill{height:100%;background:var(--softmax)}.contrast{margin:22px 0;border-top:1px solid var(--line)}.contrast-row{display:grid;grid-template-columns:minmax(150px,.72fr) 1fr 1fr;gap:15px;padding:14px 0;border-bottom:1px solid var(--line)}.contrast-row .label{color:#4b555c;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:800}.contrast-row .svm-text{color:#713c27}.contrast-row .softmax-text{color:#214f66}.mis-row{display:grid;grid-template-columns:minmax(190px,.9fr) 1.5fr;gap:18px;padding:14px 0;border-bottom:1px solid var(--line)}.mis-row .mistake{color:var(--warning);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:780}.remember{margin-top:46px;padding:25px;color:#f4f5f6;background:var(--ink);border-top:6px solid var(--softmax)}.remember h2{margin:0 0 10px;color:white;font-size:1.36rem}.remember p{margin:7px 0;color:#e6e9eb}footer{margin-top:27px;color:#747b82;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:.76rem;line-height:1.55}footer a{color:var(--softmax);text-underline-offset:3px}@media(max-width:730px){body{font-size:16px}main{width:min(100% - 14px,960px);margin:7px auto 24px;padding:25px 18px 32px}.shape-row{grid-template-columns:1fr}.op{transform:rotate(90deg)}.two-col{grid-template-columns:1fr}.score-grid{grid-template-columns:1fr}.contrast-row{grid-template-columns:1fr;gap:5px}.mis-row{grid-template-columns:1fr;gap:4px}.formula{text-align:left}.bar-row{grid-template-columns:64px 1fr 52px}}@media print{body{background:white}main{width:100%;margin:0;border:none;box-shadow:none}a{color:inherit}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">CS231n · Linear Classification</p>
+    <h1>什么是 SVM？它与 Softmax 到底有什么区别？</h1>
+    <p class="lead">这两个名字容易让人误以为是两套完全不同的分类系统。实际上，在这页 CS231n 笔记里，它们共享同一个“前半段”：都用 <strong>W 把图片变成类别分数</strong>；真正不同的是“后半段”——它们怎样解释这些分数，以及怎样定义“做得不好”。</p>
+    <div class="opening-question">因此，理解这整页最有效的切入点不是分别死记两个公式，而是先抓住：<strong>同一组 scores，SVM 用间隔判断好坏，Softmax 用概率判断好坏。</strong></div>
+  </header>
+
+  <div class="chain"><span class="common">图片 x</span><span class="arrow">→</span><span class="common">线性打分 f = Wx + b</span><span class="arrow">→</span><span class="svm">SVM：检查分数间隔</span><span class="arrow">或</span><span class="softmax">Softmax：变成概率</span><span class="arrow">→</span><span class="common">计算损失并调整 W</span></div>
+
+  <section>
+    <h2>共同起点：线性分类器只负责“打分”</h2>
+    <p>对第 i 张图片 <em>x<sub>i</sub></em>，分类器先计算：</p>
+    <div class="formula">f(x<sub>i</sub>, W, b) = W x<sub>i</sub> + b<span class="caption">输入一张图片，输出每个类别各自的分数</span></div>
+    <p>若有 K 个类别、每张图片展开后有 D 个数，那么：</p>
+    <div class="shape-row"><div class="shape"><b>W</b><span>K × D<br>每一行负责一个类别</span></div><div class="op">·</div><div class="shape"><b>x<sub>i</sub></b><span>D × 1<br>一张图片的列向量</span></div><div class="op">=</div><div class="shape"><b>f</b><span>K × 1<br>K 个类别分数</span></div></div>
+    <p>例如 CIFAR-10 有 10 个类别，每张图片有 32×32×3=3072 个像素值，因而 W 的形状是 10×3072，x 的形状是 3072×1，乘完得到 10×1 的分数向量。一行 W 相当于一个类别的“模板”：它与图片做点积，匹配得越好，分数越高。</p>
+    <div class="note"><strong>W.dot(x) 为什么会得到 scores？</strong> 因为 <code>dot</code> 是 NumPy 的矩阵乘法方法。W 的每一行分别与 x 做一次点积，正好得到每个类别的一个分数。</div>
+    <p>到这里，SVM 和 Softmax 完全一样。它们都可用同一个 W、同一个 b、同一组 scores；区别从“损失函数”开始。损失函数就是把当前预测压缩成一个数：数越大，表示当前 W 越不符合训练标签。</p>
+  </section>
+
+  <section>
+    <h2>SVM：不仅要选对，还要“赢得够明显”</h2>
+    <p>假设第 i 张图片真实类别是 <em>y<sub>i</sub></em>。SVM 的直觉是：正确类别分数不仅要最高，还要比每一个错误类别至少高出固定间隔 Δ。</p>
+    <div class="formula svm">L<sub>i</sub> = Σ<sub>j ≠ y<sub>i</sub></sub> max(0, s<sub>j</sub> − s<sub>y<sub>i</sub></sub> + Δ)<span class="caption">第 i 张图片的损失 = 所有错误类别各自的间隔缺口之和</span></div>
+    <p>这里 s<sub>j</sub> 是第 j 类分数，s<sub>y<sub>i</sub></sub> 是正确类别分数。对每个错误类别分别计算：</p>
+    <div class="formula svm">max(0, Δ −（正确类别实际领先的分数）)<span class="caption">领先达到 Δ：处罚为 0；还差多少：处罚多少</span></div>
+    <div class="example">
+      <p class="example-title">小例子：正确答案是猫，Δ = 10</p>
+      <div class="score-grid"><div class="score-cell true"><span class="label">猫（正确）</span><span class="value">13</span></div><div class="score-cell"><span class="label">狗</span><span class="value">11</span></div><div class="score-cell"><span class="label">汽车</span><span class="value">−7</span></div></div>
+      <table><thead><tr><th>比较</th><th>计算</th><th>含义</th><th>损失</th></tr></thead><tbody><tr><td>狗 vs 猫</td><td>max(0, 11−13+10)</td><td>猫只领先 2，还差 8 才达到间隔 10</td><td>8</td></tr><tr><td>汽车 vs 猫</td><td>max(0, −7−13+10)</td><td>猫领先 20，已经越过安全线</td><td>0</td></tr></tbody></table>
+      <p><strong>所以 L<sub>i</sub> = 8。</strong></p>
+    </div>
+    <p>注意：猫分数 13 已经最高，最终预测并没有错；但它只比狗高 2，没有达到要求的 10，所以仍然受罚。SVM 衡量的不是单纯“预测对没对”，而是：<strong>正确类别对每个错误类别的领先是否足够稳。</strong></p>
+    <div class="warning">SVM 不是先把所有错误分数合起来再减正确分数。它让狗、汽车等每个错误类别分别和猫比较，最后把所有正的处罚相加。</div>
+    <h3>代码里的 margins 为什么是数组？</h3>
+    <pre><span class="comment"># scores = [猫, 狗, 汽车]</span>
+scores = [13, 11, -7]
+y = 0
+delta = 10
+
+scores - scores[y] + delta
+<span class="result">→ [10, 8, -10]</span>
+
+np.maximum(0, ...)
+<span class="result">→ [10, 8, 0]   # np.maximum 是逐元素比较，不是找一个最大值</span>
+
+margins[y] = 0
+<span class="result">→ [0, 8, 0]    # 清除正确类别与自己比较产生的假损失</span>
+
+np.sum(margins)
+<span class="result">→ 8            # 最后才得到标量 L_i</span></pre>
+    <p>当一张图片的所有错误类别都至少落后 Δ 时，L<sub>i</sub>=0。这体现了 SVM 的“达标制”：超过安全间隔以后，继续把正确分数推得更高，不会让数据损失继续下降。</p>
+  </section>
+
+  <section>
+    <h2>为什么 SVM 还要加正则化？</h2>
+    <p>只看间隔损失会留下一个问题：若某个 W 已经分得很好，把整个 W 乘以 2，所有分数和分数差也会乘以 2，但预测类别和分类边界并没有改变。分数差看起来更大，可能只是把尺子的刻度放大了。</p>
+    <div class="formula">W → 2W &nbsp;⇒&nbsp; scores → 2 scores &nbsp;⇒&nbsp; 类别排序不变<span class="caption">W、2W、100W 可能完成同样的分类工作，仅凭数据损失无法选择</span></div>
+    <p>因此，完整目标会加入 L2 正则化：</p>
+    <div class="formula svm">L = (1/N) Σ<sub>i</sub>L<sub>i</sub> + λ Σ<sub>k,l</sub>W<sub>k,l</sub><sup>2</sup><span class="caption">总损失 = 平均数据损失 + 权重过大的处罚</span></div>
+    <ul class="steps"><li><strong>W 太小：</strong>各类别分数挤在一起，间隔不足，数据损失大。</li><li><strong>W 太大：</strong>即使分类没变，权重平方和也会变大，正则化损失大。</li><li><strong>训练寻找平衡：</strong>用不过分膨胀的 W，获得尽量正确且有间隔的分类。</li></ul>
+    <p>L2 也倾向于让影响分散到多个输入维度，而不是让少数像素拥有极端大的权重。这通常会降低模型对训练数据中偶然细节的依赖，从而减轻过拟合。</p>
+    <div class="note">Δ 通常固定为 1。因为把 Δ 从 1 改成 100，可以通过放大 W 来适配；真正需要调的是 λ——我们允许 W 为了降低数据损失增长到什么程度。</div>
+    <div class="aside">二分类 SVM 的常见写法是 <strong>C·max(0, 1−y<sub>i</sub>w<sup>T</sup>x<sub>i</sub>) + R(W)</strong>，其中 y∈{−1,+1}。它和这里的多分类 SVM 使用同一种“间隔不足就处罚”思想；C 越大越看重数据损失，而 λ 越大越看重正则化，所以两者作用方向相反。</div>
+  </section>
+
+  <section>
+    <h2>Softmax：把同一组分数解释成概率</h2>
+    <p>Softmax 并没有换掉打分函数。仍然是：</p>
+    <div class="formula softmax">f(x<sub>i</sub>, W) = W x<sub>i</sub><span class="caption">变化的不是分数怎样产生，而是分数怎样被解释和处罚</span></div>
+    <p>Softmax 先把任意实数分数转成一组 0 到 1 之间、总和为 1 的数：</p>
+    <div class="formula softmax">q<sub>j</sub> = e<sup>f<sub>j</sub></sup> / Σ<sub>k</sub>e<sup>f<sub>k</sub></sup><span class="caption">q_j 是模型分给第 j 个类别的归一化概率</span></div>
+    <p>分母本来就等于所有分子之和，因此全部概率相加一定是 1。这里没有使用“同底数幂相加”的规则；只是同分母分数相加：</p>
+    <div class="formula softmax">e<sup>f₁</sup>/S + e<sup>f₂</sup>/S + ··· + e<sup>f<sub>K</sub></sup>/S = (e<sup>f₁</sup>+···+e<sup>f<sub>K</sub></sup>)/S = S/S = 1</div>
+    <div class="example">
+      <p class="example-title">小例子：原始分数 [3, 2, 0]</p>
+      <p>先做指数：e³≈20.09，e²≈7.39，e⁰=1；总和约为 28.48。所以 Softmax 概率约为：</p>
+      <div class="prob-bars"><div class="bar-row"><span>猫</span><div class="bar-track"><div class="bar-fill" style="width:70.5%"></div></div><strong>70.5%</strong></div><div class="bar-row"><span>狗</span><div class="bar-track"><div class="bar-fill" style="width:25.9%"></div></div><strong>25.9%</strong></div><div class="bar-row"><span>汽车</span><div class="bar-track"><div class="bar-fill" style="width:3.5%"></div></div><strong>3.5%</strong></div></div>
+    </div>
+    <h3>交叉熵为什么只剩下正确类别概率？</h3>
+    <p>真实答案可以写成 one-hot 分布。若猫是正确类别：</p>
+    <div class="formula softmax">p = [1, 0, 0] &nbsp;&nbsp; H(p,q) = −Σ<sub>j</sub>p<sub>j</sub>log q<sub>j</sub> = −log q<sub>猫</sub></div>
+    <p>因为错误类别位置的 p 都是 0，乘完不会贡献损失。所以单张图片的 Softmax 交叉熵损失就是：</p>
+    <div class="formula softmax">L<sub>i</sub> = −log ( e<sup>f<sub>y<sub>i</sub></sub></sup> / Σ<sub>j</sub>e<sup>f<sub>j</sub></sup> ) = −f<sub>y<sub>i</sub></sub> + log Σ<sub>j</sub>e<sup>f<sub>j</sub></sup><span class="caption">它在问：模型给正确类别分配了多少概率？</span></div>
+    <p>两个写法相等，是因为 log(a/b)=log a−log b，且自然对数满足 log(e<sup>x</sup>)=x。正确类别概率越接近 1，−log(q<sub>y</sub>) 越接近 0；若模型几乎不给正确类别概率，损失会迅速变大。</p>
+    <div class="note">Softmax 本身只是“分数 → 概率”的函数；真正计算损失的是交叉熵。但实际交流中，人们经常把 Softmax 与交叉熵的组合简称为 “Softmax loss”。</div>
+  </section>
+
+  <section>
+    <h2>数值稳定性：为什么代码总先减去最大分数？</h2>
+    <p>指数函数增长非常快，直接算 e<sup>789</sup> 可能超过浮点数表示范围。Softmax 有一个重要性质：所有分数同时减去同一个常数，结果不变。</p>
+    <div class="formula softmax">e<sup>f<sub>j</sub>−M</sup> / Σ<sub>k</sub>e<sup>f<sub>k</sub>−M</sup> = e<sup>f<sub>j</sub></sup>e<sup>−M</sup> / ( e<sup>−M</sup>Σ<sub>k</sub>e<sup>f<sub>k</sub></sup> )<span class="caption">分子分母共同因子 e^(−M) 抵消</span></div>
+    <pre>scores = np.array([123.0, 456.0, 789.0])
+
+scores = scores - np.max(scores)
+<span class="result"># [-666., -333., 0.]</span>
+
+exp_scores = np.exp(scores)
+probs = exp_scores / np.sum(exp_scores)</pre>
+    <p>取 M=max(scores) 后，最大分数变成 0，其指数是 e⁰=1，其余指数不超过 1，从而显著降低上溢风险。</p>
+  </section>
+
+  <section>
+    <h2>同一组分数，SVM 和 Softmax 为什么会有不同态度？</h2>
+    <div class="two-col"><div class="panel svm"><h3>SVM：间隔是否达标</h3><p>正确类别只要比每个错误类别至少高 Δ，就不再处罚。达标以后继续增大分差，数据损失仍为 0。</p></div><div class="panel softmax"><h3>Softmax：正确概率有多高</h3><p>只要正确类别概率还没到 1，损失就仍然大于 0。它会持续鼓励正确分数更高、错误分数更低。</p></div></div>
+    <div class="example"><p class="example-title">并排比较：正确类别都是第一类</p><table><thead><tr><th>分数</th><th>SVM（Δ=1）</th><th>Softmax</th></tr></thead><tbody><tr><td>[10, −100, −100]</td><td>间隔充足，损失 0</td><td>正确概率几乎为 1，损失几乎为 0</td></tr><tr><td>[10, 9, 9]</td><td>两项刚好达到间隔，损失 0</td><td>三个类别仍激烈竞争，正确概率约 57.6%，损失明显</td></tr></tbody></table></div>
+    <p>这正是二者最核心的差别：SVM 是“越过安全线即可”，Softmax 是“继续提高正确答案在全部类别中的相对占比”。</p>
+    <div class="contrast"><div class="contrast-row"><div class="label">共同部分</div><div class="svm-text">都可以使用 f=Wx+b 产生分数</div><div class="softmax-text">都可以使用 f=Wx+b 产生分数</div></div><div class="contrast-row"><div class="label">分数的含义</div><div class="svm-text">不可直接解释的类别得分</div><div class="softmax-text">未归一化对数概率，经 Softmax 后成为概率</div></div><div class="contrast-row"><div class="label">好预测的标准</div><div class="svm-text">正确分数对每个错误分数至少领先 Δ</div><div class="softmax-text">给正确类别分配尽可能高的概率</div></div><div class="contrast-row"><div class="label">达标后的态度</div><div class="svm-text">间隔够了，数据梯度可以为 0</div><div class="softmax-text">概率未到 1，仍会继续优化</div></div><div class="contrast-row"><div class="label">输出是否是概率</div><div class="svm-text">不是</div><div class="softmax-text">形式上是概率分布，但不一定完美校准</div></div><div class="contrast-row"><div class="label">正则化</div><div class="svm-text">通常加入 λ‖W‖²</div><div class="softmax-text">同样通常加入 λ‖W‖²</div></div></div>
+  </section>
+
+  <section>
+    <h2>这页中几处容易被带偏的地方</h2>
+    <div class="mis-row"><div class="mistake">“SVM 是一整个不同的打分模型。”</div><div>在这页里，SVM 和 Softmax 都先用同一线性函数打分；不同的是损失函数。</div></div>
+    <div class="mis-row"><div class="mistake">“L<sub>i</sub>&gt;0 就表示预测错了。”</div><div>SVM 中不一定。预测可以正确，但领先不够 Δ。</div></div>
+    <div class="mis-row"><div class="mistake">“np.maximum 会找出最大的错误类别。”</div><div>它逐元素与 0 比较，保留所有正 margin；最后再求和。</div></div>
+    <div class="mis-row"><div class="mistake">“Softmax 的指数分子相加是用了幂的加法公式。”</div><div>不是。分母直接定义成所有分子的和，所以各比例之和自然为 1。</div></div>
+    <div class="mis-row"><div class="mistake">“Softmax 概率就是客观真实概率。”</div><div>它是模型内部的归一化置信度；概率数值还会受权重尺度、正则化和校准情况影响。</div></div>
+    <div class="mis-row"><div class="mistake">“正则化就是把 W 压到越小越好。”</div><div>若 W=0，分类能力也消失。训练寻找的是数据损失与权重大小之间的平衡。</div></div>
+  </section>
+
+  <section>
+    <h2>把整页重新串起来</h2>
+    <ul class="steps"><li>把图片像素展开为 x，用 W x+b 同时计算所有类别分数。</li><li>损失函数评价当前分数与真实标签是否一致，并指导之后怎样调整 W。</li><li>SVM 逐个检查错误类别：正确类别有没有至少领先 Δ；所有缺口相加得到 L<sub>i</sub>。</li><li>正则化限制 W 无意义地膨胀，并减少对少数输入维度的极端依赖。</li><li>Softmax 把同一组分数指数化、归一化为概率，再用 −log(正确类别概率) 计算交叉熵。</li><li>二者都在找低损失的 W，只是 SVM 追求“有间隔地分对”，Softmax 追求“让正确类别概率尽量高”。</li></ul>
+  </section>
+
+  <section class="remember"><h2>记住这一点</h2><p>SVM 和 Softmax 共享同一个分数函数；它们的根本区别在于怎样定义“好的分数”。</p><p>SVM 要求正确类别对每个错误类别留出固定安全间隔，达标即停止处罚；Softmax 把分数变成概率，用交叉熵持续提高正确类别的概率。</p><p>两者都要配合正则化寻找 W：既让训练标签得到合理分数，又避免权重无意义地过大。</p></section>
+
+  <footer>本笔记依据 Stanford CS231n <a href="https://cs231n.github.io/linear-classify/" target="_blank" rel="noopener noreferrer">Linear Classification</a> 页面整理，并结合上述对话中出现的公式、代码与常见误解重新组织。为保持主线紧凑，未展开核方法、对偶优化和其他多分类 SVM 变体。</footer>
+</main>
+</body>
+</html>
